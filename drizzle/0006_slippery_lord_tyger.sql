@@ -1,0 +1,1 @@
+ALTER TABLE `users` ADD `vector_store_id` text;

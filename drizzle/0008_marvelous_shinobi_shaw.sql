@@ -1,0 +1,1 @@
+ALTER TABLE `users` ADD `thread_id` text;

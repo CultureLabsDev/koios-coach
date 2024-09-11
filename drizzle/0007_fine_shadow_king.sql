@@ -1,0 +1,1 @@
+ALTER TABLE `users` ADD `known_as` text;

@@ -1,0 +1,1 @@
+ALTER TABLE `users` ADD `owner_id` text;

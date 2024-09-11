@@ -1,0 +1,40 @@
+{
+  "name": "koios-coach",
+  "scripts": {
+    "dev": "wrangler dev src/main.ts --live-reload",
+    "deploy": "wrangler deploy --minify src/main.ts",
+    "tailwind": "bunx tailwindcss -i ./tailwind.css -o ./assets/static/tailwind.css --watch",
+    "routes": "bunx hono-router ./src/routes ./src/router.ts",
+    "lint": "eslint -c eslint.config.mjs 'src/**/*.ts' 'src/**/*.tsx' --fix",
+    "drizzle": "drizzle-kit generate"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.635.0",
+    "@aws-sdk/s3-request-presigner": "^3.635.0",
+    "hono": "^4.4.7",
+    "marked": "^14.1.1",
+    "sanitize-html": "^2.13.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240529.0",
+    "@eslint/js": "^9.9.0",
+    "@paralleldrive/cuid2": "^2.2.2",
+    "@types/sanitize-html": "^2.11.0",
+    "browser-sync": "^3.0.2",
+    "daisyui": "^4.12.2",
+    "drizzle-kit": "^0.24.1",
+    "drizzle-orm": "^0.33.0",
+    "eslint": "^9.9.0",
+    "globals": "^15.9.0",
+    "hono-router": "^1.0.4",
+    "tailwindcss": "^3.4.4",
+    "typescript-eslint": "^8.2.0",
+    "wrangler": "^3.73.0",
+    "@types/bun": "latest"
+  },
+  "module": "index.ts",
+  "type": "module",
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

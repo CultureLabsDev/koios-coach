@@ -1,0 +1,72 @@
+#!/bin/sh
+
+# Example setup steps
+echo "Running bun-create script..."
+
+# Install dependencies
+bun install
+
+# Prompt for project name
+echo "Enter the name for your project:"
+read PROJECT_NAME
+
+# Define resource names
+D1_DB_NAME="${PROJECT_NAME}-database"
+QUEUE_NAME="${PROJECT_NAME}-queue"
+
+# Function to get the ID of an existing D1 database
+get_d1_db_id() {
+  wrangler d1 info --json "$1" | jq -r '.uuid'
+}
+
+# Function to get the ID of an existing queue
+get_queue_id() {
+  wrangler queues list | awk -v queue_name="$1" '$0 ~ queue_name {print $2}'
+}
+
+# Check if D1 database exists
+D1_DB_ID=$(get_d1_db_id "$D1_DB_NAME")
+if [ -z "$D1_DB_ID" ]; then
+  # Create D1 database if it doesn't exist
+  D1_DB_RESPONSE=$(wrangler d1 create $D1_DB_NAME)
+  D1_DB_ID=$(echo "$D1_DB_RESPONSE" | awk '/id: / {print $2}')
+else
+  echo "D1 database $D1_DB_NAME already exists with ID $D1_DB_ID"
+fi
+
+# Check if queue exists
+QUEUE_ID=$(get_queue_id $QUEUE_NAME)
+if [ -z "$QUEUE_ID" ]; then
+  # Create queue if it doesn't exist
+  QUEUE_RESPONSE=$(wrangler queues create $QUEUE_NAME)
+else
+  echo "Queue $QUEUE_NAME already exists"
+fi
+
+# Update wrangler.toml with the new IDs and names
+echo "Updating wrangler.toml with the new IDs and names..."
+sed -i.bak "s/PLACEHOLDER_D1_DB_NAME/$D1_DB_NAME/" wrangler.toml
+sed -i.bak "s/PLACEHOLDER_D1_DB_ID/$D1_DB_ID/" wrangler.toml
+sed -i.bak "s/PLACEHOLDER_QUEUE_NAME/$QUEUE_NAME/" wrangler.toml
+sed -i.bak "s/PLACEHOLDER_PROJECT_NAME/$PROJECT_NAME/" wrangler.toml
+
+# Execute SQL files in the drizzle folder
+echo "Executing SQL files in the drizzle folder..."
+for sql_file in drizzle/*.sql; do
+  echo "Executing $sql_file..."
+  wrangler d1 execute $D1_DB_NAME --file $sql_file
+done
+
+# Write feature flags to a config file
+echo "Setting up feature flags..."
+echo "Enter the version (e.g., v1, v2):"
+read VERSION
+cat <<EOT > featureFlags.json
+{
+  "version": "$VERSION",
+  "featureA": $( [ "$VERSION" = "v1" ] && echo true || echo false ),
+  "featureB": $( [ "$VERSION" = "v2" ] && echo true || echo false )
+}
+EOT
+
+echo "Setup complete."

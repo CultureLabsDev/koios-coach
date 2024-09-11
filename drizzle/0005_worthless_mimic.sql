@@ -1,0 +1,1 @@
+ALTER TABLE `users` ADD `assistant_id` text;
